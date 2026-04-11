@@ -1,4 +1,4 @@
-String input = "";
+String input = ;
 String password = "123";
 
 int ledHijau = 13;
