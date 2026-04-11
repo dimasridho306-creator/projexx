@@ -1,41 +1,31 @@
-String input = ;
-String password = "123";
+import streamlit as st
+import serial
+import time
 
-int ledHijau = 13;
-int ledMerah = 12;
-int ledKuning = 11;
+# ganti COM sesuai port Arduino kamu
+PORT = "COM3"
+BAUD = 9600
 
-void setup() {
-  Serial.begin(9600);
+st.title("Kontrol LED Arduino dengan Password")
 
-  pinMode(ledHijau, OUTPUT);
-  pinMode(ledMerah, OUTPUT);
-  pinMode(ledKuning, OUTPUT);
+password = st.text_input("Masukkan Password", type="password")
 
-  digitalWrite(ledKuning, HIGH); // standby
-}
+if st.button("Kirim ke Arduino"):
 
-void loop() {
-  if (Serial.available()) {
-    input = Serial.readStringUntil('\n');
+    try:
+        arduino = serial.Serial(PORT, BAUD, timeout=1)
+        time.sleep(2)
 
-    digitalWrite(ledKuning, LOW); // lagi proses
+        arduino.write((password + "\n").encode())
 
-    if (input == password) {
-      digitalWrite(ledHijau, HIGH);
-      digitalWrite(ledMerah, LOW);
-      Serial.println("Akses diterima");
-    } else {
-      digitalWrite(ledHijau, LOW);
-      digitalWrite(ledMerah, HIGH);
-      Serial.println("Akses ditolak");
-    }
+        st.success("Password berhasil dikirim ke Arduino")
 
-    delay(2000);
+        response = arduino.readline().decode().strip()
 
-    // balik ke standby
-    digitalWrite(ledHijau, LOW);
-    digitalWrite(ledMerah, LOW);
-    digitalWrite(ledKuning, HIGH);
-  }
-}
+        if response:
+            st.write("Respon Arduino:", response)
+
+        arduino.close()
+
+    except:
+        st.error("Arduino tidak terhubung")
